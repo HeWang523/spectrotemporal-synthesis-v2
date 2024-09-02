@@ -1,0 +1,52 @@
+clc;
+clear;
+fs = 100000;
+Dir =  '/BirdSong';
+
+input_directory = [pwd Dir];
+
+fname_list_str  = dir( fullfile(input_directory, '*.wav'));
+fname_list = {fname_list_str.name};
+
+
+
+s_n = length(fname_list);
+
+for i = 1:s_n
+    [wav_orig, wav_sr] = audioread([input_directory '/' fname_list{i}]);
+    fname_split = regexp(fname_list{i}, '\.', 'split');
+    wav_orig_res = resample(wav_orig,fs,wav_sr);
+
+
+    [pxx(i,:),f] = pspectrum(wav_orig_res, fs, 'FrequencyLimits', [0 25000],'FrequencyResolution',512);
+
+    figure(s_n+1)
+    plot(f/1000,pow2db(average_pxx), 'r');
+    xlabel('Frequency (kHz)');
+    ylabel('Power Spectrum (dB)');
+    title("Power Spectrum of ")
+    grid on;
+    set(gcf,'color','w')
+    hold off
+end
+
+
+average_pxx = mean(pxx,1);
+SD1=std(pow2db(pxx),1);
+NSDR1=(pow2db(average_pxx)+SD1);
+PSDR1=(pow2db(average_pxx)-SD1);
+
+figure(s_n+1)
+plot(f/1000,pow2db(average_pxx), 'r');
+hold on
+patch([f'/1000 fliplr(f'/1000)],[NSDR1 fliplr(PSDR1)], 'r', 'FaceAlpha',0.2, 'EdgeColor','none');
+xlabel('Frequency (kHz)');
+ylabel('Power Spectrum (dB)');
+grid on;
+set(gcf,'color','w')
+hold off
+
+
+
+
+

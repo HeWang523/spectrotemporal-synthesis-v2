@@ -1,0 +1,199 @@
+clc;
+clear;
+fs = 100000;
+f_in = load("f.mat").f;
+f_out = 50*2.^(0:log2(fs / (50 * 2))/160:log2(fs / (50 * 2)));
+
+pxx_165 = load("165_natural_sounds_Info\pxx.mat").pxx_ori';
+pxx_mar = load("MarmosetVocal_info\pxx.mat").pxx_ori';
+pxx_bird = load("BirdSong_Info\pxx.mat").pxx_ori';
+
+pxx_165_mm = load("165_natural_sounds_Info\pxx_mm.mat").pxx_mm';
+pxx_mar_mm = load("MarmosetVocal_info\pxx_mm.mat").pxx_mm';
+pxx_bird_mm = load("BirdSong_Info\pxx_mm.mat").pxx_mm';
+
+average_p_165 = mean(pxx_165,2);
+average_p_mar = mean(pxx_mar,2);
+average_p_bird = mean(pxx_bird,2);
+
+average_p_165_mm = mean(pxx_165_mm,2);
+average_p_mar_mm = mean(pxx_mar_mm,2);
+average_p_bird_mm = mean(pxx_bird_mm,2);
+
+
+%% 
+
+for i = 1:165
+    [SpecdBOut_165(i,:),~] = MarmosetExcitationPatternv1(f_in, pxx_165(:,i), f_out);
+end
+
+for i = 1:15
+    [SpecdBOut_marvocal(i,:),~] = MarmosetExcitationPatternv1(f_in, pxx_mar(:,i), f_out);
+end
+
+for i = 1:15
+    [SpecdBOut_bird(i,:),~] = MarmosetExcitationPatternv1(f_in, pxx_bird(:,i), f_out);
+end
+
+SD1=std(SpecdBOut_165,1);
+SD1 = SD1 / 165;
+NSDR1=(mean(SpecdBOut_165)+SD1);
+PSDR1=(mean(SpecdBOut_165)-SD1);
+
+SD2=std(SpecdBOut_marvocal,1);
+SD2 = SD2 / 15;
+NSDR2=(mean(SpecdBOut_marvocal)+SD2);
+PSDR2=(mean(SpecdBOut_marvocal)-SD2);
+
+SD3=std(SpecdBOut_bird,1);
+SD3 = SD3 / 15;
+NSDR3=(mean(SpecdBOut_bird)+SD3);
+PSDR3=(mean(SpecdBOut_bird)-SD3);
+
+
+figure
+plot(f_out/1000, mean(SpecdBOut_165,1), 'r', LineWidth=2);
+hold on
+plot(f_out/1000, mean(SpecdBOut_marvocal,1), 'b',LineWidth=2);
+plot(f_out/1000, mean(SpecdBOut_bird,1),'magenta', LineWidth=2);
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR1 fliplr(PSDR1)], 'r', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR2 fliplr(PSDR2)], 'b', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR3 fliplr(PSDR3)], 'magenta', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+legend('165 Natural Sounds', 'Marmoset Vocal', 'Bird Sounds');
+xlabel('Central Frequency (kHz)');
+ylabel('Excitation Pattern (dB)');
+ylim([-90, 5]);
+hold off
+
+%% 
+
+for i = 1:165
+    SpecdBOut_165_mm(i,:) = MarmosetExcitationPattern(f_in, pxx_165_mm(:,i), f_out);
+end
+
+for i = 1:15
+    SpecdBOut_marvocal_mm(i,:) = MarmosetExcitationPattern(f_in, pxx_mar_mm(:,i), f_out);
+end
+
+for i = 1:15
+    SpecdBOut_bird_mm(i,:) = MarmosetExcitationPattern(f_in, pxx_bird_mm(:,i), f_out);
+end
+
+SD4=std(SpecdBOut_165_mm,1);
+SD4 = SD4 / 165;
+NSDR4=(mean(SpecdBOut_165_mm)+SD4);
+PSDR4=(mean(SpecdBOut_165_mm)-SD4);
+
+SD5=std(SpecdBOut_marvocal_mm,1);
+SD5 = SD5 / 15;
+NSDR5=(mean(SpecdBOut_marvocal_mm)+SD5);
+PSDR5=(mean(SpecdBOut_marvocal_mm)-SD5);
+
+SD6=std(SpecdBOut_bird_mm,1);
+SD6 = SD6 / 15;
+NSDR6=(mean(SpecdBOut_bird_mm)+SD6);
+PSDR6=(mean(SpecdBOut_bird_mm)-SD6);
+
+figure
+plot(f_out/1000, mean(SpecdBOut_165,1), 'r', LineWidth=2);
+hold on
+plot(f_out/1000, mean(SpecdBOut_165_mm,1), 'b',LineWidth=2);
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR1 fliplr(PSDR1)], 'r', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR4 fliplr(PSDR4)], 'b', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+legend('165 Natural Sounds', 'Model Matched Sounds');
+xlabel('Central Frequency (kHz)');
+ylabel('Excitation Pattern (dB)');
+ylim([-90, 5]);
+hold off
+
+figure
+plot(f_out/1000, mean(SpecdBOut_marvocal,1), 'r', LineWidth=2);
+hold on
+plot(f_out/1000, mean(SpecdBOut_marvocal_mm,1), 'b',LineWidth=2);
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR2 fliplr(PSDR2)], 'r', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR5 fliplr(PSDR5)], 'b', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+legend('Marmoset Vocal', 'Model Matched Sounds');
+xlabel('Central Frequency (kHz)');
+ylabel('Excitation Pattern (dB)');
+ylim([-90, 5]);
+hold off
+
+figure
+plot(f_out/1000, mean(SpecdBOut_bird,1), 'r', LineWidth=2);
+hold on
+plot(f_out/1000, mean(SpecdBOut_bird_mm,1), 'b',LineWidth=2);
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR3 fliplr(PSDR3)], 'r', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+patch([f_out/1000 fliplr(f_out/1000)],[NSDR6 fliplr(PSDR6)], 'b', 'FaceAlpha',0.4, 'EdgeColor','none', 'HandleVisibility', 'off');
+legend('Bird Songs', 'Model Matched Sounds');
+xlabel('Central Frequency (kHz)');
+ylabel('Excitation Pattern (dB)');
+ylim([-90, 5]);
+hold off
+
+
+function SpecdBOut = MarmosetExcitationPattern(FreqIn, SpecAmpIn, FreqOut)
+% MarmosetExPatnSteady caclulate the steady excitation pattern of marmoset
+% auditory periphery. (Assume the input sound is a steady sound)
+%   FreqIn,     the discrete INPUT frequency bins,
+%               should be in linear scale
+%   SpecAmpIn,  the Amp(rms) for each INPUT frequency bin, 
+%   FreqOut,    the discrete OUTPUT frequency bins,
+%               can be in linear/log/ERB scale
+%   SpecdBOut,  the Amp(dB relative) for each OUTPUT frequency bin
+%       assume Amp=1(rms) is X dB SPL
+%       the number in SpecdBOut is dB number relative to X in each bin
+
+%   Technical NOTES:
+%       (1) interpolation direct on p, r generally fails. Especially for r,
+%           when not 0, the side leakage is huge. Even w/ 0 input, there is
+%           still a high baseline "level"
+%       (2) interpolation on ERB 1st, and then use roex filter that only
+%           has p but not r is much better.
+
+
+ERB_freq_Raw    =[  250     500     1000    7000    16000];
+ERB_raw         =[  90.97   126.85  180.51  460.83  2282.71];
+% data for 500 1000 7000 16000 are from 4 monkeys
+% data for 250 is from 1 monkey and r is assumed to be 0;
+
+% % ERB_Out =   interp1(ERB_freq_Raw,	ERB_raw, FreqOut,'spline'); 
+% 
+ERB_Out_marmosetERB =   interp1(ERB_freq_Raw,	ERB_raw, FreqOut,'pchip'); 
+ERB_Out_1over6 = FreqOut/6;
+ERB_Out_1over12 = FreqOut/12;
+ERB_1990 = 24.7*(4.37*FreqOut/1000+1);
+
+% % ERB_p_Out = 4.322 * FreqOut./ERB_Out; 
+ERB_p_Out = 4 * FreqOut./ERB_Out_1over6; 
+
+ERB_r_Out = 0*ERB_p_Out;
+
+% figure
+% loglog(FreqOut, ERB_Out_1over6);
+% hold on
+% loglog(FreqOut, ERB_Out_1over12);
+% loglog(FreqOut, ERB_1983);
+% scatter(ERB_freq_Raw, ERB_raw)
+% grid on
+% legend('1/6 octave', '1/12 octave', 'Glasberg & Moore, 1990', 'Marmoset ERB');
+% xlabel('Central Frequency (Hz)');
+% ylabel('Bandwidth (Hz)');
+% hold off
+
+for i = 1:length(FreqOut)
+    % for each output Freqbin
+    g = abs( (FreqIn - FreqOut(i)) / FreqOut(i) );
+        % In 
+    W = ERB_r_Out(i) + (1-ERB_r_Out(i)) * (1+ERB_p_Out(i)*g) .*...
+        exp(-ERB_p_Out(i)*g);
+        % In
+    SpecdBOut(i) = 10*log10( sum(SpecAmpIn.^2 .*W) );
+        % Out(i)        
+end
+
+% figure
+% plot(FreqOut/1000, SpecdBOut);
+% ERB_r_raw       =[	0       0.03735 0.00848 0.00193 0.00095];
+% ERB_p_Out   = interp1(ERB_freq_Raw,	ERB_p_raw, FreqOut,'spline');
+% ERB_r_Out   = interp1(ERB_freq_Raw,	ERB_r_raw, FreqOut,'spline');
+end

@@ -27,6 +27,7 @@ N=size(filts,2)-2;
 signal_length = length(signal);
 filt_length = size(filts,1);
 fft_sample = fft(signal);
+
 if rem(signal_length,2)==0 %even length - 
     fft_filts = [filts' fliplr(filts(2:filt_length-1,:)')]'; %generate negative frequencies in right place; filters are column vectors
 else %odd length

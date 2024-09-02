@@ -100,8 +100,8 @@ end
 fig_fname = [output_directory '/' fname_without_extension '_summary_moment_comparisons'];
 set(gcf, 'PaperSize', [11 8.5]);
 set(gcf, 'PaperPosition', [0.25 0.25 10.5 8]);
-print([fig_fname '.pdf'],'-dpdf');
-print([fig_fname '.png'],'-dpng', '-r100');
+% print([fig_fname '.pdf'],'-dpdf');
+% print([fig_fname '.png'],'-dpng', '-r100');
 
 
 

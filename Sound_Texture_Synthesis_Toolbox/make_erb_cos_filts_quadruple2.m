@@ -45,6 +45,9 @@ switch animal
     case 'ferret'
         freq2erb_fun = @freq2erb_ferret;
         erb2freq_fun = @erb2freq_ferret;
+    case 'marmoset'
+        freq2erb_fun = @freq2eqn;
+        erb2freq_fun = @eqn2freq;
     otherwise
         error('No matching animal');
 end
@@ -109,5 +112,10 @@ center_freqs = erb2freq_fun([center_freqs(1)-4*spacing center_freqs(2)-4*spacing
 Hz_cutoffs = center_freqs;
 Hz_cutoffs(find(Hz_cutoffs<0)) = 1;
 
-%subplot(2,1,1); plot(freqs,sum(filts.^2,2))
-%subplot(2,1,2); semilogx(freqs,sum(filts.^2,2))
+% figure
+% for i = 1:131
+%     plot(freqs, filts(:,i))
+%     hold on
+% end
+% subplot(2,1,1); plot(freqs,sum(filts.^2,2))
+% subplot(2,1,2); semilogx(freqs,sum(filts.^2,2))

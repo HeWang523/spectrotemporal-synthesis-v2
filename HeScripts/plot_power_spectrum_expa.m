@@ -1,0 +1,193 @@
+clc;
+clear;
+fs = 100000;
+
+cate = 2;
+Dir = {'/backup/165_natural_sounds_model_matched', '/MarmosetVocal_model_matched', '/BirdSong_model_matched'};
+save_dir = {'/165_natural_sounds_Info/', '/MarmosetVocal_Info/', '/BirdSong_Info/'};
+input_directory = [pwd Dir{cate}];
+f_out = 50*2.^(0:log2(fs / (50 * 2))/160:log2(fs / (50 * 2)));
+% input_directory = "C:\M102D/OnsetSounds";
+save_directort = [pwd save_dir{cate}];
+% save_directort = "C:\M102D/Sounds_info/";
+resample_out_dir = [pwd '/Agg_sounds'];
+
+ori_fname_list_str  = dir( fullfile(input_directory, '*orig.wav'));
+% ori_fname_list_str  = dir( fullfile(input_directory, '*o.wav'));
+ori_fname_list = {ori_fname_list_str.name};
+
+mm_fname_list_str  = dir( fullfile(input_directory, '*synth.wav'));
+% mm_fname_list_str  = dir( fullfile(input_directory, '*s.wav'));
+mm_fname_list = {mm_fname_list_str.name};
+
+s_n = length(ori_fname_list);
+
+for i = 1:s_n
+    % load in original sounds and model matched sounds in original sampling
+    % rate, 44.1 kHz for 165 natural sounds and 50 kHz for marmoset vocal
+    % and bird sounds
+    [wav_orig, ~] = audioread([input_directory '/'  ori_fname_list{i}]);
+    [wav_mm, wav_sr] = audioread([input_directory  '/'  mm_fname_list{i}]);
+
+
+    % resample to 100 kHz and save
+
+
+    % resample sounds
+
+    wav_ori_resample = resample(wav_orig,fs, wav_sr);
+    wav_mm_resample = resample(wav_mm,fs, wav_sr);
+
+    [b ,a] = butter(4, 35000 / (fs / 2), 'low');
+    wav_ori_resample = filtfilt(b, a, wav_ori_resample);
+    wav_mm_resample = filtfilt(b, a, wav_mm_resample);
+
+    if cate == 2 || cate == 3
+        [b ,a] = butter(4, 3000 / (fs / 2), 'high');
+        wav_ori_resample = filtfilt(b, a, wav_ori_resample);
+        wav_mm_resample = filtfilt(b, a, wav_mm_resample);
+    end
+
+
+    % save wav files
+    % define the file name
+    if cate == 2
+        head = 'stim00';
+        fname_split = regexp(ori_fname_list{i}, '\_', 'split');
+        new_fname = head;
+        for j = 2:length(fname_split)
+            new_fname = [new_fname '_' fname_split{j}];
+        end
+    elseif cate == 3
+        head = 'stim01';
+        new_fname = [head '_' ori_fname_list{i}];
+    elseif cate == 1
+        new_fname = ori_fname_list{i};
+    end
+    wav_ori_resample = 0.01 * wav_ori_resample / rms(wav_ori_resample);
+    fname_resample = [resample_out_dir '/'  new_fname];
+    audiowrite(fname_resample,wav_ori_resample, fs);
+    fname_resample = [save_directort '/'  new_fname];
+    audiowrite(fname_resample,wav_ori_resample, fs);
+
+    if cate == 2
+        head = 'stim00';
+        fname_split = regexp(mm_fname_list{i}, '\_', 'split');
+        new_fname = head;
+        for j = 2:length(fname_split)
+            new_fname = [new_fname '_' fname_split{j}];
+        end
+    elseif cate == 3
+        head = 'stim01';
+        new_fname = [head '_' mm_fname_list{i}];
+    elseif cate == 1
+        new_fname = mm_fname_list{i};
+    end
+    wav_mm_resample = 0.01 * wav_mm_resample / rms(wav_mm_resample);
+    fname_resample = [resample_out_dir '/'  new_fname];
+    audiowrite(fname_resample,wav_mm_resample, fs);
+    fname_resample = [save_directort '/'  new_fname];
+    audiowrite(fname_resample,wav_mm_resample, fs);
+
+
+    wav_ori_resample = wav_ori_resample ./ std(wav_ori_resample);
+    wav_mm_resample = wav_mm_resample ./ std(wav_mm_resample);
+
+
+    fname_split = regexp(ori_fname_list{i}, '\.', 'split');
+    fname = fname_split{1};
+
+    [pxx_ori(i,:),~] = pspectrum(wav_ori_resample, fs, 'FrequencyLimits', [50 fs/2],'FrequencyResolution',1024);
+    [pxx_mm(i,:),f] = pspectrum(wav_mm_resample, fs, 'FrequencyLimits', [50 fs/2],'FrequencyResolution',1024);
+
+
+
+
+    % plot power spectrum
+    title_name = "";
+    split_fname_without_extension = split(fname, '_');
+    for title_idx = 1:length(split_fname_without_extension) - 1
+        title_name = title_name + split_fname_without_extension{title_idx} + " ";
+    end
+
+    fig = figure('visible','off');
+    plot(f/1000,pow2db(pxx_ori(i,:)), 'r', LineWidth=2);
+    hold on
+    plot(f/1000,pow2db(pxx_mm(i,:)), 'b', LineWidth=2);
+    legend('Original Sound', 'Model Matched', 'Location', 'southeast');
+    ylim([-90, 10]);
+    xlim([0, fs/2000]);
+    xlabel('Frequency (kHz)');
+    ylabel('Amplitude (dB)');
+    title("Power Spectrum of " + title_name);
+    grid on;
+    set(gcf,'color','w')
+    filename = save_directort + "Powerspe" + fname + ".jpg";
+    saveas(fig, filename);
+    hold off
+    
+    [pxx_fft_ori,~] = compute_FFT(wav_ori_resample, fs);
+    [pxx_fft_mm,f_fft] = compute_FFT(wav_mm_resample, fs);
+    SpecdBOut_ori = MarmosetExcitationPatternv1(f_fft, pxx_fft_ori, f_out);
+    SpecdBOut_mm = MarmosetExcitationPatternv1(f_fft, pxx_fft_mm, f_out);
+    fig = figure('visible','off');
+    semilogx(f_out/1000,SpecdBOut_ori, 'r', LineWidth=2);
+    hold on
+    semilogx(f_out/1000,SpecdBOut_mm, 'b', LineWidth=2);
+    legend('Original Sound', 'Model Matched', 'Location', 'southwest');
+    ylim([-95, 20]);
+    xlim([0, fs/2000]);
+    xlabel('Frequency (kHz)');
+    ylabel('Level (dB)');
+    title("1/12 octave weighted - " + title_name);
+    grid on;
+    set(gcf,'color','w')
+    filename = save_directort + "ExPa" + fname + ".jpg";
+    saveas(fig, filename);
+    hold off   
+    
+end
+
+pxx_fname = save_directort + "pxx.mat";
+pxx_fname_mm = save_directort + "pxx_mm.mat";
+save(pxx_fname, "pxx_ori");
+save(pxx_fname_mm, "pxx_mm");
+
+average_p_ori = mean(pow2db(pxx_ori),1);
+average_p_mm = mean(pow2db(pxx_mm),1);
+
+SD1=std(pow2db(pxx_ori),1);
+SD1 = SD1;
+NSDR1=(average_p_ori+SD1);
+PSDR1=(average_p_ori-SD1);
+
+SD2=std(pow2db(pxx_mm),1);
+SD2 = SD2 ;
+NSDR2=(average_p_mm+SD2);
+PSDR2=(average_p_mm-SD2);
+
+
+figure(1)
+
+plot(f/1000,average_p_ori, 'r', LineWidth=2);
+hold on
+plot(f/1000,average_p_mm,'b', LineWidth=2);
+legend('Original', 'Model Matched', 'Location', 'southwest');
+patch([f'/1000 fliplr(f'/1000)],[NSDR1 fliplr(PSDR1)], 'r', 'FaceAlpha',0.2, 'EdgeColor','none', 'HandleVisibility', 'off');
+
+patch([f'/1000 fliplr(f'/1000)],[NSDR2 fliplr(PSDR2)], 'b', 'FaceAlpha',0.2, 'EdgeColor','none', 'HandleVisibility', 'off');
+ylim([-96, 10]);
+xlim([0, fs/2000]);
+box off;
+xlabel('Frequency (kHz)');
+ylabel('Amplitude (dB)');
+if cate == 1
+    title('Power spectrum of 165 natural sounds and the model matched sounds');
+elseif cate == 2
+    title('Power spectrum of marmoset vocalization sounds and the model matched sounds');
+elseif cate == 3
+    title('Power spectrum of bird songs and the model matched sounds');
+end
+set(gcf,'color','w')
+
+hold off

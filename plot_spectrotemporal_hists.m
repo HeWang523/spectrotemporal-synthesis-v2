@@ -101,8 +101,8 @@ for j = 1:2
     figure(figh(j));
     set(gcf, 'PaperSize', [10 10]);
     set(gcf, 'PaperPosition', [0.25 0.25 9.5 9.5]);
-    print([fig_fname '.pdf'],'-dpdf');
-    print([fig_fname '.png'],'-dpng', '-r100');
+    % print([fig_fname '.pdf'],'-dpdf');
+    % print([fig_fname '.png'],'-dpng', '-r100');
 end
 
 function mod_rates = select_mod_rates(mod_rates)

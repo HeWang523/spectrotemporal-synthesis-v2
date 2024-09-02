@@ -41,13 +41,13 @@ figure(gcf);
 imagesc(flipud(C'));
 
 % y-axis ticks
-yi = round( linspace( 1, n_f, 5 ) );
+yi = round( linspace( 1, n_f, 10 ) );
 f_flip = flip(f);
 set(gca, 'YTick', yi, 'YTickLabel', num2cellstr( f_flip(yi), '%.0f' ) );
 clear yi f_flip;
 
 % x-axis ticks
-xi = round( linspace(1, n_t, 5) );
+xi = round( linspace(1, n_t, 9) );
 set(gca, 'XTick', xi, 'XTickLabel',  num2cellstr( t(xi) , '%.1f') );
 clear xi
 

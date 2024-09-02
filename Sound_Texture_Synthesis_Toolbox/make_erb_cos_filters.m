@@ -34,7 +34,7 @@
 % 
 % March 2018 -- Modified to make it possible to use ferret ERBs
 
-function [filts,Hz_cutoffs,freqs] = make_erb_cos_filters(signal_length, sr, N, low_lim, hi_lim, animal)
+function [filts,Hz_cutoffs,cutoffs] = make_erb_cos_filters(signal_length, sr, N, low_lim, hi_lim, animal)
 
 if nargin < 6
     animal = 'human';
@@ -47,6 +47,9 @@ switch animal
     case 'ferret'
         freq2erb_fun = @freq2erb_ferret;
         erb2freq_fun = @erb2freq_ferret;
+    case 'marmoset'
+        freq2erb_fun = @freq2eqn;
+        erb2freq_fun = @eqn2freq;
     otherwise
         error('No matching animal');
 end
@@ -87,6 +90,10 @@ l_ind = min(find(freqs>cutoffs(N+1))); %highpass filter goes down to peak of las
 filts(l_ind:nfreqs+1,N+2) = sqrt(1 - filts(l_ind:nfreqs+1,N+1).^2);
 
 Hz_cutoffs = cutoffs;
-
-%subplot(2,1,1); plot(freqs,sum(filts.^2,2))
+% figure
+% for i = 1:N+2
+%     plot(freqs, filts(:,i))
+%     hold on
+% end
+% subplot(2,1,1); plot(freqs,sum(filts.^2,2))
 %subplot(2,1,2); semilogx(freqs,sum(filts.^2,2))

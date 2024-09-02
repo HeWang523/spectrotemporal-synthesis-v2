@@ -72,5 +72,5 @@ end
 fig_fname = [output_directory '/' fname_without_extension '_2DFT'];
 set(gcf, 'PaperSize', [10 8]);
 set(gcf, 'PaperPosition', [0.25 0.25 9.5 7.5]);
-print([fig_fname '.pdf'],'-dpdf');
-print([fig_fname '.png'],'-dpng', '-r100');
+% print([fig_fname '.pdf'],'-dpdf');
+% print([fig_fname '.png'],'-dpng', '-r100');
